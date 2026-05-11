@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MatrixCode Console | 控制台 v1.0.0</title>
+    <style>
+        :root { --accent: #89b4fa; --bg: #1e1e2e; --panel: #313244; --text: #cdd6f4; --sub: #a6adc8; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        h1 { color: var(--accent); margin-bottom: 5px; text-align: center; }
+        .version-tag { background: #fab387; color: #1e1e2e; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; vertical-align: middle; }
+        .subtitle { color: var(--sub); font-size: 0.9rem; margin-bottom: 25px; text-align: center; }
+        
+        .container { max-width: 800px; width: 100%; }
+        .panel { background: var(--panel); border-radius: 0 0 12px 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-top: none; }
+        
+        .tabs { display: flex; width: 100%; border-radius: 12px 12px 0 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .tab-btn { flex: 1; background: #181825; color: var(--sub); border: none; padding: 15px; font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .tab-btn.active { background: var(--panel); color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .tab-btn:hover:not(.active) { background: #2a2b3c; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .section-title { font-size: 1rem; border-bottom: 1px solid #45475a; padding-bottom: 8px; margin: 20px 0 15px; color: var(--accent); display: flex; align-items: center; gap: 8px;}
+        
+        .controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .control-group { display: flex; flex-direction: column; }
+        label { font-size: 0.75rem; color: var(--sub); margin-bottom: 5px; font-weight: 600; }
+        input, textarea { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 10px; color: var(--text); font-size: 0.9rem; transition: all 0.2s; }
+        input[type="color"] { padding: 2px; height: 35px; cursor: pointer; width: 100%; }
+        input:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 2px rgba(137, 180, 250, 0.2); }
+        textarea { width: 100%; height: 100px; resize: none; margin-bottom: 15px; }
+        
+        .button-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        button { flex: 1; min-width: 150px; background: var(--accent); border: none; border-radius: 8px; padding: 12px; font-weight: bold; cursor: pointer; color: #11111b; transition: all 0.2s; }
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        button.secondary { background: #45475a; color: var(--text); }
+        
+        .canvas-area { margin-top: 20px; background: #11111b; border-radius: 12px; padding: 20px; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #313244; }
+        canvas { max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        .status-msg { margin-top: 15px; width: 100%; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; display: none; word-break: break-all; }
+        .success { background: rgba(166, 227, 161, 0.1); color: #a6e3a1; border: 1px solid rgba(166, 227, 161, 0.2); }
+        .error { background: rgba(243, 139, 168, 0.1); color: #f38ba8; border: 1px solid rgba(243, 139, 168, 0.2); }
+        
+        .feature-chip { display: flex; align-items: center; gap: 6px; background: #313244; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; user-select: none; border: 1px solid #45475a; }
+        .feature-chip input { display: none; }
+        .feature-chip.active { background: var(--accent); color: #11111b; border-color: var(--accent); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>MatrixCode <span class="version-tag">v1.0.0</span></h1>
+    <div class="subtitle">Console / 控制台</div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('encoder')">📤 Encoder / 编码</button>
+            <button class="tab-btn" onclick="switchTab('decoder')">📥 Decoder / 解码</button>
+        </div>
+
+        <div class="panel">
+            <div id="encoder" class="tab-content active">
+                <textarea id="textInput" placeholder="Enter message / 请输入内容...">Hello World</textarea>
+                
+                <div class="section-title">⚙️ Configuration / 基础配置</div>
+                <div class="controls">
+                    <div class="control-group"><label>Grid / 网格大小</label><input type="number" id="gridSize" value="22" min="15"></div>
+                    <div class="control-group"><label>ECC / 冗余率</label><input type="number" id="redundancyRate" value="0.2" step="0.05" min="0.1" max="0.3"></div>
+                    <div class="control-group"><label>Cell / 单元像素</label><input type="number" id="cellSize" value="10"></div>
+                    <div class="control-group"><label>Stroke / 笔触粗细</label><input type="number" id="thickness" value="2"></div>
+                    <div class="control-group"><label>Margin / 内边距</label><input type="number" id="margin" value="1"></div>
+                </div>
+
+                <div class="section-title" id="paletteTitle" style="display: none;">🎨 Palette / 调色板</div>
+                <div class="controls" id="paletteConfig" style="display: none;">
+                    <div class="control-group"><label>Background</label><input type="color" id="c_bg" value="#ffffff"></div>
+                    <div class="control-group"><label>Structure</label><input type="color" id="c_st" value="#000000"></div>
+                    <div class="control-group"><label>Color 1</label><input type="color" id="c_p1" value="#ff0000"></div>
+                    <div class="control-group"><label>Color 2</label><input type="color" id="c_p2" value="#00ff00"></div>
+                    <div class="control-group"><label>Color 3</label><input type="color" id="c_p3" value="#0000ff"></div>
+                    <div class="control-group"><label>Color 4</label><input type="color" id="c_p4" value="#00ffff"></div>
+                    <div class="control-group"><label>Color 5</label><input type="color" id="c_p5" value="#ff00ff"></div>
+                    <div class="control-group"><label>Color 6</label><input type="color" id="c_p6" value="#ffff00"></div>
+                    <div class="control-group"><label>Color 7</label><input type="color" id="c_p7" value="#ff8000"></div>
+                </div>
+
+                <div class="button-group">
+                    <label class="feature-chip" id="colorToggle"><input type="checkbox" id="useColor">🌈 Color Mode / 彩色模式</label>
+                    <label class="feature-chip" id="debugToggle"><input type="checkbox" id="debugMode">🐛 Debug Logs / 调试日志</label>
+                </div>
+
+                <div class="button-group">
+                    <button id="encodeBtn">⚡ Generate / 立即生成</button>
+                    <button id="resetBtn" class="secondary">🔄 Reset / 重置</button>
+                </div>
+
+                <div class="canvas-area">
+                    <canvas id="codeCanvas" style="display:none"></canvas>
+                    <div id="encodeStatus" class="status-msg"></div>
+                </div>
+            </div>
+
+            <div id="decoder" class="tab-content">
+                <p style="font-size: 0.85rem; color: var(--sub); margin-bottom: 20px; line-height: 1.5;">
+                    The decoder supports perspective correction and auto-detects grid sizes. <br>
+                    解码器支持透视校正，并将自动推断网格大小及冗余率。
+                </p>
+                
+                <div class="button-group">
+                    <button id="quickDecode" class="secondary">🔄 Decode from Generator / 提取生成器图像解码</button>
+                    <button id="fileDecode">📁 Upload Image / 上传图片解码</button>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none">
+                </div>
+
+                <div class="canvas-area">
+                    <canvas id="decodeCanvas" style="display:none"></canvas>
+                    <div id="decodeStatus" class="status-msg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="matrixcode.js"></script>
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        const UI = {
+            text: document.getElementById('textInput'),
+            grid: document.getElementById('gridSize'),
+            cell: document.getElementById('cellSize'),
+            margin: document.getElementById('margin'),
+            thick: document.getElementById('thickness'),
+            ecc: document.getElementById('redundancyRate'),
+            color: document.getElementById('useColor'),
+            debug: document.getElementById('debugMode'),
+            canvas: document.getElementById('codeCanvas'),
+            status: document.getElementById('encodeStatus'),
+            chips: document.querySelectorAll('.feature-chip'),
+            palTitle: document.getElementById('paletteTitle'),
+            palConfig: document.getElementById('paletteConfig')
+        };
+
+        UI.chips.forEach(chip => {
+            const input = chip.querySelector('input');
+            chip.onclick = () => {
+                input.checked = !input.checked;
+                chip.classList.toggle('active', input.checked);
+                if(input.id === 'useColor') {
+                    UI.palTitle.style.display = input.checked ? 'block' : 'none';
+                    UI.palConfig.style.display = input.checked ? 'grid' : 'none';
+                }
+            };
+        });
+
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+        }
+
+        function getPalette() {
+            if (!UI.color.checked) return null;
+            return {
+                bg: hexToRgb(document.getElementById('c_bg').value),
+                struct: hexToRgb(document.getElementById('c_st').value),
+                p1: hexToRgb(document.getElementById('c_p1').value),
+                p2: hexToRgb(document.getElementById('c_p2').value),
+                p3: hexToRgb(document.getElementById('c_p3').value),
+                p4: hexToRgb(document.getElementById('c_p4').value),
+                p5: hexToRgb(document.getElementById('c_p5').value),
+                p6: hexToRgb(document.getElementById('c_p6').value),
+                p7: hexToRgb(document.getElementById('c_p7').value)
+            };
+        }
+
+        function getMCConfig() {
+            return {
+                gridSize: parseInt(UI.grid.value),
+                cellSize: parseInt(UI.cell.value),
+                margin: parseInt(UI.margin.value),
+                thickness: parseInt(UI.thick.value),
+                redundancyRate: parseFloat(UI.ecc.value),
+                useColor: UI.color.checked,
+                debug: UI.debug.checked,
+                palette: getPalette()
+            };
+        }
+
+        document.getElementById('encodeBtn').onclick = () => {
+            const text = UI.text.value.trim();
+            if(!text) return alert("Please enter text / 请输入内容");
+            
+            let config = getMCConfig();
+            UI.status.style.display = 'none';
+
+            try {
+                let mc, buffer;
+                let success = false;
+                while(config.gridSize < 150) {
+                    try {
+                        mc = new MatrixCode(config);
+                        buffer = mc.encodeToBuffer(text);
+                        success = true;
+                        break;
+                    } catch(e) {
+                        if(e.message.includes('overflow')) {
+                            config.gridSize += 2;
+                            UI.grid.value = config.gridSize;
+                        } else throw e;
+                    }
+                }
+
+                if(success) {
+                    UI.canvas.style.display = 'block';
+                    UI.canvas.width = buffer.width;
+                    UI.canvas.height = buffer.height;
+                    const ctx = UI.canvas.getContext('2d');
+                    ctx.putImageData(new ImageData(new Uint8ClampedArray(buffer.data), buffer.width, buffer.height), 0, 0);
+                    
+                    UI.status.className = 'status-msg success';
+                    UI.status.style.display = 'block';
+                    UI.status.innerHTML = `<b>Success / 生成成功！</b><br>Size: ${config.gridSize}x${config.gridSize}<br>Mode: ${config.useColor ? 'Color / 彩色' : 'Monochrome / 黑白'}`;
+                }
+            } catch(e) {
+                UI.status.className = 'status-msg error';
+                UI.status.style.display = 'block';
+                UI.status.innerText = "Error: " + e.message;
+            }
+        };
+
+        const handleDecode = (sourceCanvas) => {
+            const status = document.getElementById('decodeStatus');
+            const dCanvas = document.getElementById('decodeCanvas');
+            status.style.display = 'none';
+
+            try {
+                const mc = new MatrixCode({ debug: UI.debug.checked });
+                const ctx = sourceCanvas.getContext('2d');
+                const imgData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+                
+                const result = mc.decodeFromBuffer(imgData);
+                
+                status.className = 'status-msg success';
+                status.style.display = 'block';
+                status.innerHTML = `<b>Decode Success / 解码成功:</b><br><div style="font-family:monospace; margin-top:5px; background:#181825; padding:8px; border-radius:4px;">${result}</div>`;
+                
+                dCanvas.style.display = 'block';
+                dCanvas.width = sourceCanvas.width;
+                dCanvas.height = sourceCanvas.height;
+                dCanvas.getContext('2d').putImageData(imgData, 0, 0);
+            } catch(e) {
+                status.className = 'status-msg error';
+                status.style.display = 'block';
+                status.innerText = "Decode Failed / 解码失败: " + e.message;
+            }
+        };
+
+        document.getElementById('quickDecode').onclick = () => {
+            if(UI.canvas.style.display === 'none') return alert("Generate an image first / 请先生成图片");
+            handleDecode(UI.canvas);
+        };
+
+        document.getElementById('fileDecode').onclick = () => document.getElementById('fileInput').click();
+        document.getElementById('fileInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = img.width;
+                    tempCanvas.height = img.height;
+                    tempCanvas.getContext('2d').drawImage(img, 0, 0);
+                    handleDecode(tempCanvas);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        document.getElementById('resetBtn').onclick = () => location.reload();
+    </script>
+</body>
+</html>
