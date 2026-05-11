@@ -25,6 +25,11 @@ MatrixCode 控制台是一个基于纯前端运行的高级矩阵编码与解码
 * **🚀 纯本地与静态架构 (Local-first & Pure Frontend)**
   开箱即用，零后端依赖。所有文本的加密、编码及图像解析过程均在本地浏览器内存中实时计算，绝不向外部服务器传输任何数据。
 
+### 💡 典型应用场景：硬件冷钱包的交易签名 (取代动画二维码)
+
+* **现实痛点**：现在的加密货币硬件钱包（如 Keystone、OneKey 等）为了做到“绝对不触网（物理气隙隔离防黑客）”，砍掉了所有蓝牙、WiFi、USB 接口，只保留屏幕和摄像头。由于单张黑白二维码容量太小，遇到智能合约等大体积交易数据时，只能让屏幕像放幻灯片一样播放“动画二维码”（Animated QR / BC-UR 协议），手机再录制视频解析。这经常因为环境光线导致的丢帧而解析失败，用户体验极差。
+* **MatrixCode 落地**：MatrixCode 的彩色 Base-121 模式可以将 1~2KB 的庞大交易数据或签名，**全部塞进一张高密度的静态图片里**。只要手机对准屏幕，咔嚓一下单帧解析成功，完美消灭了动画二维码的“丢帧”痛点，实现真正的降维打击。
+
 ### 🚀 部署与运行指引
 
 本项目为纯静态 Web 应用，没有任何复杂的构建步骤。
@@ -50,6 +55,11 @@ MatrixCode Console is an advanced, pure frontend-based matrix encoding and decod
   The decoder requires zero manual parameter input. It supports 8-DOF perspective correction and automatically scans and infers the grid size and color mapping. It parses accurately whether extracting directly from the generator or uploading a real-world photograph.
 * **🚀 Local-first & Pure Frontend Architecture**
   Ready to use out-of-the-box with zero backend dependencies. All text encryption, encoding, and image parsing processes are computed in real-time within your local browser's memory. No data is ever transmitted to external servers.
+
+### 💡 Highlight Use Case: Hardware Cold Wallet Signatures (Replacing Animated QRs)
+
+* **The Pain Point**: Modern crypto hardware wallets (like Keystone, OneKey) achieve "absolute air-gapped security" by removing all Bluetooth, WiFi, and USB interfaces, leaving only a screen and a camera. Because standard black-and-white QR codes lack the capacity for large smart contract transaction data, the device is forced to display "Animated QR codes" (BC-UR protocol) like a slideshow, which the user's phone must record. This often fails due to dropped frames caused by lighting changes, resulting in a frustrating user experience.
+* **The MatrixCode Solution**: MatrixCode's Color Base-121 mode can pack 1~2KB of massive transaction data or signatures **entirely into a single static image**. Point the phone at the screen, snap a single frame, and it parses instantly. This flawlessly eliminates the "dropped frame" issue inherent in animated QRs, providing a vastly superior air-gapped data transfer experience.
 
 ### 🚀 Deployment & Running Guide
 
